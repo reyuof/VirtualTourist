@@ -9,57 +9,68 @@ import UIKit
 import CoreData
 import MapKit
 class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectionViewDelegate, UICollectionViewDataSource, NSFetchedResultsControllerDelegate {
-
+    
     
     
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var newCollectionButton: UIButton!
+    @IBOutlet weak var editBtn: UIBarButtonItem!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var dataController: DataController!
     var fetchedResultsController:NSFetchedResultsController<Photo>!
     var pin : Pin!
     var latitude :Double?
     var longitude  :Double?
+    var isEditingEnabled = false
+    var photoImgView : UIImage!
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         
-        let space:CGFloat = 3.0
-        let dimension = (view.frame.size.width - (2 * space)) / 3.0
-
-        flowLayout.minimumInteritemSpacing = space
-        flowLayout.minimumLineSpacing = space
-        flowLayout.itemSize = CGSize(width: dimension, height: dimension)
-    
-       
-        setLocation()
+        
+        setupCollectionView()
+        setUpLocation()
         setUpFetchResultsController()
+        
         if fetchedResultsController.sections?[0].numberOfObjects == 0{
             newCollectionButton.isUserInteractionEnabled = false
-        loadImage()
+            self.navigationItem.rightBarButtonItem?.isEnabled = false
+            loadImage()
         }else{
             newCollectionButton.isUserInteractionEnabled = true
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            
         }
     }
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        setUpFetchResultsController()
-    }
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         fetchedResultsController = nil
+        
     }
+    
     func loadImage(){
-       
+        activityIndicator.startAnimating()
         newCollectionButton.isUserInteractionEnabled = false
+        self.navigationItem.rightBarButtonItem?.isEnabled = false
         FilckrClinet.getPhotoByLocation(latitude: latitude ?? 0.0, longitude: longitude ?? 0.0) { (photos, error) in
+            self.activityIndicator.stopAnimating()
             guard let photos = photos else {
                 debugPrint(error)
+                if !Reachability.isConnectedToNetwork(){
+                    self.showAlertMessage(title: "No Interent Connection", message: "Please check your Internet connection and try again")
+                } else {
+                    self.showAlertMessage(title: "Loading Photo Failed",message: error?.localizedDescription ?? "Can't load photo for the location " )
+                }
                 return
             }
-            //add method for adding photo to core data
+            
             for photo in photos{
                 self.addPhoto(photoData: photo)
             }
@@ -69,6 +80,8 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
                 self.collectionView.reloadData()
             }
             self.newCollectionButton.isUserInteractionEnabled = true
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            
         }
     }
     fileprivate func setUpFetchResultsController() {
@@ -87,7 +100,7 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
             fatalError("the fetch could not be performd: \(error.localizedDescription) ")
         }
     }
-    func setLocation(){
+    func setUpLocation(){
         mapView.removeAnnotations(mapView.annotations)
         var annotations = [MKPointAnnotation]()
         if let latitude = latitude,let longitude = longitude{
@@ -113,9 +126,9 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
         photo.image = nil
         photo.photoURL = "https://farm\(photoData.farm).staticflickr.com/\(photoData.server)/\(photoData.id)_\(photoData.secret).jpg"
         photo.pin = pin
-        try? dataController.viewContext.save()//need to handel the error in production application
+        try? dataController.viewContext.save()
         
-    
+        
     }
     func deletePhoto(at indexPath: IndexPath) {
         let photoToDelete = fetchedResultsController.object(at: indexPath)
@@ -138,17 +151,33 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
         deleteAllPhoto()
         loadImage()
     }
-
+    
+    @IBAction func editPhoto(_ sender: Any) {
+        isEditingEnabled = !isEditingEnabled
+        editBtn.title = isEditingEnabled ? "Done" : "Edit"
+    }
+    ///Collection View
+    
+    fileprivate func setupCollectionView() {
+        let space:CGFloat = 3.0
+        let dimension = (view.frame.size.width - (2 * space)) / 3.0
+        
+        flowLayout.minimumInteritemSpacing = space
+        flowLayout.minimumLineSpacing = space
+        flowLayout.itemSize = CGSize(width: dimension, height: dimension)
+    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print(fetchedResultsController.sections?[section].numberOfObjects ?? 0)
         return fetchedResultsController.sections?[section].numberOfObjects ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
         let photo = fetchedResultsController.object(at: indexPath)
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionCell", for: indexPath) as! PhotoCollectionViewCell
+        
         cell.photoImageView.image = UIImage(named: "placeholder_large")
+        
         if photo.image == nil {
             FilckrClinet.dowonloadPhoto(url: photo.photoURL ?? "") { (data, error) in
                 if let data = data{
@@ -164,14 +193,31 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
                 cell.photoImageView.image = photoData
             }
         }
-        //cell.imageView.image = memes[indexPath.row].memedImage
-        
+
         return cell
     }
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        deletePhoto(at: indexPath)
-    }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if isEditingEnabled {
+            deletePhoto(at: indexPath)
+        }else {
+            let photo = fetchedResultsController.object(at: indexPath)
+            if let photo = photo.image{
+                let photoData = UIImage(data: photo)
+                if let photo = photoData{
+                    self.photoImgView = photo
+                    performSegue(withIdentifier: "showPhoto", sender: self)
+                }
+            }
+        }
+    }
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showPhoto"{
+            let photoViewController = segue.destination as! PhotoViewController
+            photoViewController.photoImg = photoImgView
+        }
+    }
     // MARK: - MKMapViewDelegate
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

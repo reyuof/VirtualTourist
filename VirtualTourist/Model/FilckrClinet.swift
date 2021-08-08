@@ -27,7 +27,6 @@ class FilckrClinet{
     }
     //to do change the bool to data
     class func getPhotoByLocation(latitude : Double, longitude:Double, completion: @escaping ([FilckrPhotosData]? , Error?) -> Void){
-        print(Endpoints.getSearchPhoto(latitude, longitude).url)
         let task = URLSession.shared.dataTask(with: Endpoints.getSearchPhoto(latitude, longitude).url) { (data, response, error) in
             guard let data = data else {
                 DispatchQueue.main.async {
@@ -37,7 +36,6 @@ class FilckrClinet{
             }
             let decoder = JSONDecoder()
             do {
-                print(data)
                 let responseObject = try decoder.decode(FlickrPhotoResponse.self, from: data)
                 
                 DispatchQueue.main.async{
