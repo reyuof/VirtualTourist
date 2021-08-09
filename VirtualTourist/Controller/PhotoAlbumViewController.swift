@@ -48,6 +48,10 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
             
         }
     }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setUpFetchResultsController()
+    }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
@@ -92,7 +96,7 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
         fetchRequest.predicate = predicate
         
         
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: "photos")
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: "pin")
         fetchedResultsController.delegate = self
         do{
             try fetchedResultsController.performFetch()
@@ -177,7 +181,7 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionCell", for: indexPath) as! PhotoCollectionViewCell
         
         cell.photoImageView.image = UIImage(named: "placeholder_large")
-        
+        cell.activityIndicator.startAnimating()
         if photo.image == nil {
             FilckrClinet.dowonloadPhoto(url: photo.photoURL ?? "") { (data, error) in
                 if let data = data{
@@ -185,12 +189,14 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
                     cell.photoImageView.image = photoData
                     photo.image = data
                     try? self.dataController.viewContext.save()
+                    cell.activityIndicator.stopAnimating()
                 }
             }
         }else{
             if let data = photo.image{
                 let photoData = UIImage(data: data)
                 cell.photoImageView.image = photoData
+                cell.activityIndicator.stopAnimating()
             }
         }
 
@@ -214,7 +220,7 @@ class PhotoAlbumViewController: UIViewController , MKMapViewDelegate,UICollectio
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showPhoto"{
-            let photoViewController = segue.destination as! PhotoViewController
+            let photoViewController = segue.destination as! PhotoViewDetailController
             photoViewController.photoImg = photoImgView
         }
     }

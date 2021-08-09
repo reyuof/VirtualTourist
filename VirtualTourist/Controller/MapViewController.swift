@@ -212,36 +212,31 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
             
         }else{
             //if edit button is disable move to photo album view when select pin on map
-            let photoViewController  = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "PhotoAlbumViewController") as! PhotoAlbumViewController
-            
-            let latitude = view.annotation?.coordinate.latitude
-            let longitude = view.annotation?.coordinate.longitude
-            photoViewController.dataController = dataController
-            photoViewController.latitude = latitude
-            photoViewController.longitude = longitude
-            
-            let fetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
-            
-            let predicate = NSPredicate(format: "latitude == %lf", Double(latitude ?? 0.0))
-            let longitudePredicate = NSPredicate(format: "longitude == %lf", Double(longitude ?? 0.0))
-            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, longitudePredicate])
-            
-            fetchedResultsController.delegate = self
-            do {
-                if let result = try? dataController.viewContext.fetch(fetchRequest){
-                    photoViewController.pin = result.first
-                    
-                }
-            } catch {
-                fatalError("The fetch could not be performed: \(error.localizedDescription)")
-            }
-            
+            performSegue(withIdentifier: "PhotoAlbumView", sender: self)
             mapView.deselectAnnotation(view.annotation, animated: true)
-            
-            self.navigationController?.pushViewController(photoViewController, animated: true)
         }
     }
-    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let viewController = segue.destination as? PhotoAlbumViewController {
+            if let pins = fetchedResultsController.fetchedObjects {
+                //selected pin at that moment
+                let annotation = mapView.selectedAnnotations[0]
+                //to get the indexpath by looking
+                guard let indexPath = pins.firstIndex(where: { (pin) -> Bool in
+                    //it return that location where this condition is met
+                    pin.latitude == annotation.coordinate.latitude && pin.longitude == annotation.coordinate.longitude
+                }) else {
+                    return
+                }
+                viewController.longitude = pins[indexPath].longitude
+                viewController.latitude = pins[indexPath].latitude
+                viewController.pin = pins[indexPath]
+                viewController.dataController = dataController
+            }
+            
+            
+        }
+    }
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         if animated{
             UserDefaults.standard.set(true, forKey: "isLocationSaved")

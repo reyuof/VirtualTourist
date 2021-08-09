@@ -57,7 +57,7 @@
                         <outlet property="editBtn" destination="6AI-KN-dpm" id="Ej2-vb-jCz"/>
                         <outlet property="mapView" destination="nmE-IE-0cG" id="bVE-LH-aql"/>
                         <outlet property="searchBar" destination="a7J-Nj-fRT" id="7W3-EU-LKW"/>
-                        <segue destination="MGR-X7-SP5" kind="show" identifier="PhotoAlbumView" id="7bB-bV-DGM"/>
+                        <segue destination="MGR-X7-SP5" kind="push" identifier="PhotoAlbumView" id="7bB-bV-DGM"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -105,15 +105,21 @@
                                                         <constraint firstAttribute="width" constant="100" id="YoA-BP-xNM"/>
                                                     </constraints>
                                                 </imageView>
+                                                <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="NzN-qw-Z8l">
+                                                    <rect key="frame" x="40" y="40" width="20" height="20"/>
+                                                </activityIndicatorView>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="bottom" secondItem="cIQ-By-KMd" secondAttribute="bottom" id="2hl-yY-oEz"/>
+                                                <constraint firstItem="NzN-qw-Z8l" firstAttribute="centerY" secondItem="QTb-my-YQF" secondAttribute="centerY" id="Hm1-Eq-22Z"/>
                                                 <constraint firstItem="cIQ-By-KMd" firstAttribute="leading" secondItem="QTb-my-YQF" secondAttribute="leading" id="Kkv-bY-1lg"/>
+                                                <constraint firstItem="NzN-qw-Z8l" firstAttribute="centerX" secondItem="QTb-my-YQF" secondAttribute="centerX" id="RcV-lk-6fd"/>
                                                 <constraint firstItem="cIQ-By-KMd" firstAttribute="top" secondItem="QTb-my-YQF" secondAttribute="top" id="alM-t9-8Fx"/>
                                                 <constraint firstAttribute="trailing" secondItem="cIQ-By-KMd" secondAttribute="trailing" id="hea-L2-fOx"/>
                                             </constraints>
                                         </collectionViewCellContentView>
                                         <connections>
+                                            <outlet property="activityIndicator" destination="NzN-qw-Z8l" id="Zdy-dQ-kUq"/>
                                             <outlet property="photoImageView" destination="cIQ-By-KMd" id="eXq-K5-Fy1"/>
                                         </connections>
                                     </collectionViewCell>
@@ -123,7 +129,7 @@
                                     <outlet property="delegate" destination="MGR-X7-SP5" id="eVm-Th-WbK"/>
                                 </connections>
                             </collectionView>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="8kQ-pt-RbA">
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="8kQ-pt-RbA">
                                 <rect key="frame" x="197" y="499" width="20" height="20"/>
                             </activityIndicatorView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XUO-dK-Y1F">
@@ -168,17 +174,17 @@
                         <outlet property="flowLayout" destination="gcg-FK-cNH" id="kj5-yB-0mW"/>
                         <outlet property="mapView" destination="R6H-9r-fod" id="2JE-jJ-RzX"/>
                         <outlet property="newCollectionButton" destination="XUO-dK-Y1F" id="aLJ-ev-12b"/>
-                        <segue destination="xJv-c4-6oy" kind="show" identifier="showPhoto" id="g8x-wr-MMA"/>
+                        <segue destination="xJv-c4-6oy" kind="push" identifier="showPhoto" id="g8x-wr-MMA"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FcP-4r-qnT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="3671.0144927536235" y="93.75"/>
         </scene>
-        <!--Photo View Controller-->
+        <!--Photo View Detail Controller-->
         <scene sceneID="EVA-pA-7Bo">
             <objects>
-                <viewController id="xJv-c4-6oy" customClass="PhotoViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="xJv-c4-6oy" customClass="PhotoViewDetailController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="aVK-HQ-mXM">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

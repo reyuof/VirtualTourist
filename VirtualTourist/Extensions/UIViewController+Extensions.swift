@@ -1,5 +1,5 @@
 //
-//  UIView+Extensions.swift
+//  UIViewController+Extensions.swift
 //  VirtualTourist
 //
 //  Created by Tasheel on 25/12/1442 AH.
